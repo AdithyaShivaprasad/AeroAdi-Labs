@@ -1,0 +1,67 @@
+<!DOCTYPE html><html lang="en"><head>
+<title>Quiz — AeroAdi Labs</title>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..125,400..800&family=Instrument+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/styles.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 26 26'><path d='M2 20 L14 20 L21 13' fill='none' stroke='%233E8BFF' stroke-width='2.4' stroke-linecap='round'/><path d='M21 13 L24 10 L23.2 14.2 Z' fill='%233E8BFF'/></svg>">
+
+</head><body>
+<div id="shell-nav"></div>
+<main id="main"><section class="section"><div class="wrap" style="max-width:760px" id="page"></div></section></main>
+<div id="shell-footer"></div>
+<script src="assets/data.js"></script><script src="assets/app.js"></script>
+<script>
+renderShell("quizzes.html");
+const Q = QUIZZES.find(q=>q.slug===param("id")) || QUIZZES[0];
+document.title = Q.title + " — AeroAdi Labs";
+let i=0, score=0; const results=[];
+
+function render(){
+  const page=document.getElementById("page");
+  if(i>=Q.qs.length){ return renderEnd(); }
+  const q=Q.qs[i];
+  page.innerHTML = `
+    <div class="crumb"><a href="quizzes.html">Quizzes</a> / ${Q.title}</div>
+    <div class="q-progress" role="img" aria-label="Question ${i+1} of ${Q.qs.length}">
+      ${Q.qs.map((_,k)=>`<span class="qp ${k<i? (results[k]?"right":"wrong") : k===i? "now":""}"></span>`).join("")}
+      <span class="data-s" style="margin-left:8px">${i+1}/${Q.qs.length}</span>
+    </div>
+    <h1 class="title-m" style="margin-bottom:22px">${q.q}</h1>
+    <div id="opts">${q.opts.map((o,oi)=>`<button class="opt" data-o="${oi}">${o}</button>`).join("")}</div>
+    <div class="explain" id="ex" style="display:none"></div>
+    <div style="margin-top:18px"><button class="btn btn-primary" id="nextBtn" style="display:none" onclick="i++;render()">${i===Q.qs.length-1? "See results":"Next question →"}</button></div>`;
+  document.querySelectorAll(".opt").forEach(b=>b.addEventListener("click",()=>{
+    if(document.getElementById("nextBtn").style.display==="inline-flex") return;
+    const oi=+b.dataset.o; const right = oi===q.a;
+    results[i]=right; if(right){score++; addXP(10*Q.diff,"correct");}
+    b.classList.add(right? "correct":"incorrect");
+    if(!right) document.querySelectorAll(".opt")[q.a].classList.add("correct");
+    document.querySelectorAll(".opt").forEach(x=>x.disabled=true);
+    const ex=document.getElementById("ex"); ex.textContent=q.ex; ex.style.display="block";
+    const nb=document.getElementById("nextBtn"); nb.style.display="inline-flex"; nb.focus();
+    document.querySelectorAll(".qp")[i].className="qp "+(right?"right":"wrong");
+  }));
+}
+function renderEnd(){
+  const best=store.get("quizBest",{});
+  const prev=best[Q.slug]??-1; if(score>prev){best[Q.slug]=score;store.set("quizBest",best);}
+  const hist=store.get("quizHistory",[]); hist.push({q:Q.slug,score,total:Q.qs.length,at:Date.now()}); store.set("quizHistory",hist);
+  const pct=Math.round(100*score/Q.qs.length);
+  const verdict = pct===100? "Perfect flight. Captain material." : pct>=75? "Smooth landing — strong work." : pct>=50? "A few bumps, but you're flying." : "Every pilot logs rough days. Review and go again.";
+  document.getElementById("page").innerHTML = `
+    <div class="crumb"><a href="quizzes.html">Quizzes</a> / ${Q.title}</div>
+    <div class="card" style="text-align:center;padding:48px">
+      <span class="eyebrow">Debrief</span>
+      <div class="data-l" style="font-size:56px;margin:16px 0 6px">${score}<span class="muted-3">/${Q.qs.length}</span></div>
+      <p class="body-l muted">${verdict}</p>
+      ${score>prev&&prev>=0? '<p class="data-s" style="margin-top:8px;color:var(--positive)">NEW PERSONAL BEST</p>':''}
+      <div style="margin-top:26px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+        <button class="btn btn-primary" onclick="i=0;score=0;results.length=0;render()">Fly it again</button>
+        <a class="btn btn-secondary" href="quizzes.html">All quizzes</a>
+        <a class="btn btn-secondary" href="learn.html">Study up</a>
+      </div>
+    </div>`;
+}
+render();
+</script></body></html>

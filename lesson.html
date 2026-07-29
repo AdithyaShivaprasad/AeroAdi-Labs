@@ -1,0 +1,147 @@
+<!DOCTYPE html><html lang="en"><head>
+<title>Lesson — AeroAdi Labs</title>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..125,400..800&family=Instrument+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/styles.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 26 26'><path d='M2 20 L14 20 L21 13' fill='none' stroke='%233E8BFF' stroke-width='2.4' stroke-linecap='round'/><path d='M21 13 L24 10 L23.2 14.2 Z' fill='%233E8BFF'/></svg>">
+
+</head><body>
+<div id="shell-nav"></div>
+<main id="main"><div id="page"></div></main>
+<div id="shell-footer"></div>
+<script src="assets/data.js"></script><script src="assets/app.js"></script>
+<script>
+renderShell("learn.html");
+const L = byslug(LESSONS, param("id")) || LESSONS[0];
+document.title = L.title + " — AeroAdi Labs";
+
+/* interactive diagrams */
+function diagramHTML(kind){
+  if(kind==="lift") return `
+  <div class="diagram-box">
+    <span class="eyebrow">Interactive · Angle of attack</span>
+    <svg viewBox="0 0 400 170" style="width:100%;margin-top:12px" aria-hidden="true">
+      <line x1="10" y1="120" x2="390" y2="120" stroke="var(--line-strong)" stroke-dasharray="4 5"/>
+      <g id="wingG" transform="rotate(0 200 110)">
+        <path d="M120 110 Q170 88 230 100 Q270 108 280 112 Q220 124 160 120 Q135 117 120 110 Z" fill="var(--canvas-2)" stroke="var(--accent)" stroke-width="2"/>
+      </g>
+      <g id="liftArrow"><line x1="200" y1="95" x2="200" y2="60" stroke="var(--positive)" stroke-width="4"/><path d="M200 52 L193 64 L207 64 Z" fill="var(--positive)"/></g>
+      <text x="212" y="62" fill="var(--positive)" font-family="var(--f-data)" font-size="13">LIFT</text>
+      <text id="stallText" x="200" y="30" fill="var(--critical)" font-family="var(--f-data)" font-size="15" text-anchor="middle" style="display:none">STALL — airflow separated</text>
+      <g id="flowlines" stroke="var(--ink-3)" stroke-width="1.5" fill="none">
+        <path d="M20 92 Q150 84 300 96"/><path d="M20 128 Q150 132 300 126"/>
+      </g>
+    </svg>
+    <div class="range-wrap">
+      <span class="data-s">AOA</span>
+      <input type="range" id="aoa" min="0" max="22" value="4" aria-label="Angle of attack in degrees" aria-describedby="aoaVal">
+      <span class="data-m" id="aoaVal" style="min-width:130px">4° · Lift: 40%</span>
+    </div>
+    <p class="body-s" style="margin-top:10px">Drag past <span style="color:var(--critical)">15°</span> and watch lift collapse — that's a stall. Text summary: lift rises steadily with angle until ~15°, then airflow separates and lift drops sharply.</p>
+  </div>`;
+  if(kind==="runway") return `
+  <div class="diagram-box">
+    <span class="eyebrow">Interactive · Heading → runway number</span>
+    <div class="range-wrap"><span class="data-s">HDG</span>
+      <input type="range" id="hdg" min="0" max="359" value="274" aria-label="Magnetic heading in degrees" aria-describedby="rwyOut">
+      <span class="data-m" id="hdgVal" style="min-width:56px">274°</span></div>
+    <div style="display:flex;gap:24px;align-items:center;margin-top:16px;flex-wrap:wrap">
+      <div style="text-align:center"><div class="data-s">THIS END</div><div class="big-code" id="rwyOut" style="font-size:34px;margin-top:6px">27</div></div>
+      <div style="text-align:center"><div class="data-s">OPPOSITE END</div><div class="big-code" id="rwyOpp" style="font-size:34px;margin-top:6px">09</div></div>
+    </div></div>`;
+  if(kind==="forces") return `
+  <div class="diagram-box">
+    <span class="eyebrow">Interactive · The four forces</span>
+    <svg viewBox="0 0 400 150" style="width:100%;margin-top:12px" aria-hidden="true">
+      <g id="planeG"><path d="M150 78 Q190 70 250 74 L262 76 L250 82 Q190 86 150 82 Z M210 74 L216 60 L226 74" fill="var(--canvas-2)" stroke="var(--accent)" stroke-width="2"/></g>
+      <line x1="205" y1="55" x2="205" y2="25" stroke="var(--positive)" stroke-width="4" id="fLift"/><text x="212" y="30" fill="var(--positive)" font-size="12" font-family="monospace">LIFT</text>
+      <line x1="205" y1="100" x2="205" y2="130" stroke="var(--caution)" stroke-width="4"/><text x="212" y="128" fill="var(--caution)" font-size="12" font-family="monospace">WEIGHT</text>
+      <line x1="268" y1="78" x2="318" y2="78" stroke="var(--accent)" stroke-width="4" id="fThrust"/><text x="286" y="68" fill="var(--accent)" font-size="12" font-family="monospace">THRUST</text>
+      <line x1="144" y1="78" x2="104" y2="78" stroke="var(--critical)" stroke-width="4"/><text x="70" y="68" fill="var(--critical)" font-size="12" font-family="monospace">DRAG</text>
+    </svg>
+    <div class="range-wrap"><span class="data-s">THROTTLE</span>
+      <input type="range" id="thr" min="0" max="100" value="50" aria-label="Throttle percent" aria-describedby="thrState">
+      <span class="data-m" id="thrState" style="min-width:190px">Balanced — level flight</span></div>
+    <p class="body-s" style="margin-top:10px">Text summary: thrust above drag → accelerating and climbing; below → slowing and descending; equal → steady level flight.</p>
+  </div>`;
+  return "";
+}
+
+const idx = LESSONS.findIndex(x=>x.slug===L.slug);
+const next = LESSONS[idx+1];
+document.getElementById("page").innerHTML = `
+<section class="page-hero"><div class="wrap">
+  <div class="crumb"><a href="learn.html">Learn</a> / Foundations of Flight</div>
+  <span class="wp-code" style="font-family:var(--f-data);color:var(--accent);letter-spacing:.1em">WAYPOINT ${L.wp}</span>
+  <h1 class="display-l" style="margin:8px 0 12px">${L.title}</h1>
+  <span class="body-s">${L.mins} min read · <span class="pips">${pips(L.diff)}</span> ${DIFF_NAMES[L.diff]}</span>
+</div></section>
+<section class="section"><div class="wrap"><div class="measure lesson-body">
+  <p class="body-l">${L.intro}</p>
+  ${L.sections.map((s,i)=>`<h3 class="title-s">${s.h}</h3><p>${s.p}</p>${(i===0&&L.interactive)?diagramHTML(L.interactive):""}`).join("")}
+  <h3 class="title-s" style="margin-top:36px">Knowledge check</h3>
+  <div id="kc"></div>
+  <div class="summary-card">
+    <span class="eyebrow">On this leg you learned</span>
+    <ul style="margin:12px 0 0 18px">${L.summary.map(s=>`<li style="margin-bottom:6px">${s}</li>`).join("")}</ul>
+  </div>
+  <div style="display:flex;gap:12px;flex-wrap:wrap">
+    <button class="btn btn-primary" id="doneBtn" onclick="completeLesson()">Mark waypoint reached</button>
+    ${next? `<a class="btn btn-secondary" href="lesson.html?id=${next.slug}">Next: ${next.wp} →</a>` : `<a class="btn btn-secondary" href="quizzes.html">Take a quiz →</a>`}
+  </div>
+</div></div></section>`;
+
+/* knowledge check */
+const kc = document.getElementById("kc");
+L.check.forEach((c,qi)=>{
+  const box=document.createElement("div"); box.style.marginBottom="22px";
+  box.innerHTML = `<p style="font-weight:600;margin-bottom:10px">${qi+1}. ${c.q}</p>` +
+    c.opts.map((o,oi)=>`<button class="opt" data-q="${qi}" data-o="${oi}">${o}</button>`).join("") +
+    `<div class="explain" style="display:none">${c.ex}</div>`;
+  kc.appendChild(box);
+  box.querySelectorAll(".opt").forEach(b=>b.addEventListener("click",()=>{
+    if(box.dataset.done) return; box.dataset.done="1";
+    const oi=+b.dataset.o;
+    if(oi===c.a){ b.classList.add("correct"); addXP(10,"correct answer"); }
+    else { b.classList.add("incorrect"); box.querySelectorAll(".opt")[c.a].classList.add("correct"); }
+    box.querySelector(".explain").style.display="block";
+  }));
+});
+
+function completeLesson(){
+  const d=store.get("lessonsDone",[]);
+  if(!d.includes(L.slug)){ d.push(L.slug); store.set("lessonsDone",d); addXP(25,"waypoint "+L.wp+" reached"); }
+  document.getElementById("doneBtn").textContent="✓ Waypoint reached"; document.getElementById("doneBtn").disabled=true;
+}
+if(store.get("lessonsDone",[]).includes(L.slug)){ const b=document.getElementById("doneBtn"); b.textContent="✓ Waypoint reached"; b.disabled=true; }
+
+/* diagram logic */
+const aoa=document.getElementById("aoa");
+if(aoa){ aoa.addEventListener("input",()=>{
+  const v=+aoa.value; const stalled=v>15;
+  const lift = stalled? Math.max(10, 150-(v-15)*30) : v*10;
+  document.getElementById("wingG").setAttribute("transform",`rotate(${-v} 200 110)`);
+  const la=document.getElementById("liftArrow"); const len=Math.min(60, lift*0.4);
+  la.innerHTML=`<line x1="200" y1="95" x2="200" y2="${95-len}" stroke="${stalled?'var(--critical)':'var(--positive)'}" stroke-width="4"/><path d="M200 ${87-len} L193 ${99-len} L207 ${99-len} Z" fill="${stalled?'var(--critical)':'var(--positive)'}"/>`;
+  document.getElementById("stallText").style.display = stalled? "block":"none";
+  document.getElementById("flowlines").setAttribute("stroke", stalled? "var(--critical)":"var(--ink-3)");
+  document.getElementById("aoaVal").textContent=`${v}° · Lift: ${stalled? "COLLAPSING":Math.round(lift)+"%"}`;
+});}
+const hdg=document.getElementById("hdg");
+if(hdg){ hdg.addEventListener("input",()=>{
+  const h=+hdg.value; let n=Math.round(h/10)%36; if(n===0)n=36;
+  let opp=n>18? n-18 : n+18;
+  document.getElementById("hdgVal").textContent=String(h).padStart(3,"0")+"°";
+  document.getElementById("rwyOut").textContent=String(n).padStart(2,"0");
+  document.getElementById("rwyOpp").textContent=String(opp).padStart(2,"0");
+});}
+const thr=document.getElementById("thr");
+if(thr){ thr.addEventListener("input",()=>{
+  const v=+thr.value;
+  const t=document.getElementById("fThrust"); t.setAttribute("x2", 268+20+v*0.6);
+  const state = v>60? "Thrust > drag — accelerating, climbing" : v<40? "Thrust < drag — slowing, descending" : "Balanced — level flight";
+  document.getElementById("thrState").textContent=state;
+  document.getElementById("planeG").setAttribute("transform",`rotate(${v>60? -4: v<40? 4:0} 200 78) translate(0 ${v>60? -8: v<40? 8:0})`);
+});}
+</script></body></html>

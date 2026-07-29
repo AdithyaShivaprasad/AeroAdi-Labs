@@ -1,0 +1,66 @@
+<!DOCTYPE html><html lang="en"><head>
+<title>Aircraft — AeroAdi Labs</title>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..125,400..800&family=Instrument+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/styles.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 26 26'><path d='M2 20 L14 20 L21 13' fill='none' stroke='%233E8BFF' stroke-width='2.4' stroke-linecap='round'/><path d='M21 13 L24 10 L23.2 14.2 Z' fill='%233E8BFF'/></svg>">
+</head><body>
+<div id="shell-nav"></div>
+<main id="main"><div id="page"></div></main>
+<div id="shell-footer"></div>
+<script src="assets/data.js"></script><script src="assets/app.js"></script>
+<script>
+renderShell("aircraft.html");
+const a = byslug(AIRCRAFT, param("id")) || AIRCRAFT[0];
+document.title = a.name + " — AeroAdi Labs";
+const specs = [
+  ["Length", fmt(a.len)+" m"], ["Wingspan", fmt(a.span)+" m"], ["Height", fmt(a.hgt)+" m"],
+  ["Cruise speed", fmt(a.cruise)+" km/h"+(a.cruiseNote? " · "+a.cruiseNote:"")],
+  ["Maximum speed", fmt(a.vmax)+" km/h"],
+  ["Range", fmt(a.range)+" km"+(a.rangeNote? " · "+a.rangeNote:"")],
+  ["Service ceiling", fmt(a.ceil)+" m"], ["MTOW", fmt(a.mtow)+" kg"],
+  ["Crew", a.crew], ["Passengers (typical)", a.pax||"—"], ["Powerplant", a.engines],
+  ["First flight", a.first + (a.firstNote? " · "+a.firstNote : "")],
+  ["Country of origin", a.country]
+];
+document.getElementById("page").innerHTML = `
+<section class="hero"><div class="hero-glow"></div><div class="hero-inner" style="padding-top:56px;padding-bottom:48px">
+  <div class="crumb"><a href="aircraft.html" style="color:#9AA8C0">Aircraft</a> / ${esc(a.name)}</div>
+  <span class="eyebrow">${esc(a.maker)} · ${esc(a.country)}</span>
+  <h1 class="display-l" style="margin:10px 0 14px">${esc(a.name)}</h1>
+  <div class="chip-row">
+    <span class="tag accent">${esc(a.role)}</span>${statusChip(a)}
+    <span class="tag">First flight ${a.first}</span>
+  </div>
+  <div style="margin-top:30px;max-width:560px;color:#5C6B87">${silhouette(a,110)}</div>
+  <div style="margin-top:24px;display:flex;gap:12px;flex-wrap:wrap">
+    <button class="btn btn-primary" onclick="addToCompare('${a.slug}')">+ Add to compare</button>
+    <a class="btn btn-secondary" style="border-color:#31415F;color:#EDF1F7" href="compare.html?a=${a.slug}">Compare now</a>
+  </div>
+</div></section>
+
+<section class="section"><div class="wrap">
+  <div class="grid g-4" style="margin-bottom:56px">
+    <div class="card"><span class="data-s">CRUISE</span><div class="data-l" style="margin-top:6px">${fmt(a.cruise)}<span class="data-s"> km/h</span></div></div>
+    <div class="card"><span class="data-s">RANGE</span><div class="data-l" style="margin-top:6px">${fmt(a.range)}<span class="data-s"> km</span></div></div>
+    <div class="card"><span class="data-s">WINGSPAN</span><div class="data-l" style="margin-top:6px">${fmt(a.span)}<span class="data-s"> m</span></div></div>
+    <div class="card"><span class="data-s">${a.pax? "PASSENGERS":"CREW"}</span><div class="data-l" style="margin-top:6px">${a.pax||a.crew}</div></div>
+  </div>
+
+  <div class="measure">
+    <h2 class="title-m" style="margin-bottom:14px">Why it matters</h2>
+    <p class="body-l" style="color:var(--ink-1)">${a.story}</p>
+  </div>
+
+  <h2 class="title-m" style="margin:48px 0 8px">Full specifications</h2>
+  <p class="body-s" style="margin-bottom:14px">Typical published values for the listed variant.</p>
+  <dl class="spec-list">${specs.map(s=>`<div class="sp"><dt>${s[0]}</dt><dd>${s[1]}</dd></div>`).join("")}</dl>
+
+  <h2 class="title-m" style="margin:48px 0 16px">Trivia</h2>
+  <div class="grid g-3">${a.trivia.map(t=>`<div class="card"><span class="eyebrow">DID YOU KNOW</span><p style="margin-top:10px" class="body-s">${t}</p></div>`).join("")}</div>
+
+  <h2 class="title-m" style="margin:48px 0 16px">Continue your route</h2>
+  <div class="grid g-3">${(a.related||[]).map(s=>{const r=byslug(AIRCRAFT,s); return r? aircraftCard(r):"";}).join("")}</div>
+</div></section>`;
+</script></body></html>

@@ -1,0 +1,34 @@
+<!DOCTYPE html><html lang="en"><head>
+<title>Quizzes — AeroAdi Labs</title>
+<meta name="description" content="Aviation quizzes with instant feedback and explanations — recognition, codes, physics, and history.">
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..125,400..800&family=Instrument+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/styles.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 26 26'><path d='M2 20 L14 20 L21 13' fill='none' stroke='%233E8BFF' stroke-width='2.4' stroke-linecap='round'/><path d='M21 13 L24 10 L23.2 14.2 Z' fill='%233E8BFF'/></svg>">
+</head><body>
+<div id="shell-nav"></div>
+<main id="main">
+<section class="page-hero"><div class="wrap">
+  <span class="eyebrow">Test yourself</span>
+  <h1 class="display-l" style="margin-top:10px">Quizzes</h1>
+  <p class="muted" style="max-width:560px;margin-top:10px">Every answer — right or wrong — comes with an explanation. Earn XP and climb the pilot ranks.</p>
+  <div class="chip-row" style="margin-top:18px" id="rankChip"></div>
+</div></section>
+<section class="section"><div class="wrap"><div class="grid g-2" id="qGrid"></div></div></section>
+</main>
+<div id="shell-footer"></div>
+<script src="assets/data.js"></script><script src="assets/app.js"></script>
+<script>
+renderShell("quizzes.html");
+const r = rank();
+document.getElementById("rankChip").innerHTML = `<span class="tag accent">◎ ${r.name}</span><span class="tag">${r.xp} XP</span>`;
+const best = store.get("quizBest",{});
+document.getElementById("qGrid").innerHTML = QUIZZES.map(q=>`
+  <a class="card hoverable" href="quiz.html?id=${q.slug}">
+    <span class="eyebrow">▣ ${q.cat}</span>
+    <div class="title-s" style="margin:8px 0 4px">${q.title}</div>
+    <div class="body-s">${q.qs.length} questions · <span class="pips">${pips(q.diff)}</span> ${DIFF_NAMES[q.diff]}</div>
+    ${best[q.slug]!=null? `<div class="data-s" style="margin-top:12px">PERSONAL BEST · ${best[q.slug]}/${q.qs.length}`+"</div>" : ""}
+  </a>`).join("");
+</script></body></html>

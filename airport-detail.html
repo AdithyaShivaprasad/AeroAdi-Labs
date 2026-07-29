@@ -1,0 +1,51 @@
+<!DOCTYPE html><html lang="en"><head>
+<title>Airport — AeroAdi Labs</title>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..125,400..800&family=Instrument+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/styles.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 26 26'><path d='M2 20 L14 20 L21 13' fill='none' stroke='%233E8BFF' stroke-width='2.4' stroke-linecap='round'/><path d='M21 13 L24 10 L23.2 14.2 Z' fill='%233E8BFF'/></svg>">
+</head><body>
+<div id="shell-nav"></div>
+<main id="main"><div id="page"></div></main>
+<div id="shell-footer"></div>
+<script src="assets/data.js"></script><script src="assets/app.js"></script>
+<script>
+renderShell("airports.html");
+const p = AIRPORTS.find(x=>x.icao===param("id")) || AIRPORTS[0];
+document.title = p.name + " — AeroAdi Labs";
+function dist(a,b){ const R=6371,dLat=(b.lat-a.lat)*Math.PI/180,dLon=(b.lon-a.lon)*Math.PI/180;
+  const h=Math.sin(dLat/2)**2+Math.cos(a.lat*Math.PI/180)*Math.cos(b.lat*Math.PI/180)*Math.sin(dLon/2)**2;
+  return Math.round(2*R*Math.asin(Math.sqrt(h))); }
+const nearby = AIRPORTS.filter(x=>x.icao!==p.icao).map(x=>[dist(p,x),x]).sort((a,b)=>a[0]-b[0]).slice(0,3);
+document.getElementById("page").innerHTML = `
+<section class="hero"><div class="hero-glow"></div><div class="hero-inner" style="padding-top:56px;padding-bottom:48px">
+  <div class="crumb"><a href="airports.html" style="color:#9AA8C0">Airports</a> / ${p.iata}</div>
+  <span class="eyebrow">${p.flag} ${esc(p.city)}, ${esc(p.country)}</span>
+  <h1 class="display-l" style="margin:10px 0 16px">${esc(p.name)}</h1>
+  <div class="chip-row">
+    <span class="big-code">${p.iata}</span><span class="big-code">${p.icao}</span>
+  </div>
+</div></section>
+<section class="section"><div class="wrap">
+  <div class="grid g-4" style="margin-bottom:56px">
+    <div class="card"><span class="data-s">PASSENGERS / YR</span><div class="data-l" style="margin-top:6px">${p.pax}</div></div>
+    <div class="card"><span class="data-s">RUNWAYS</span><div class="data-l" style="margin-top:6px">${p.rwys}</div></div>
+    <div class="card"><span class="data-s">LONGEST RWY</span><div class="data-l" style="margin-top:6px">${fmt(p.longest)}<span class="data-s"> m</span></div></div>
+    <div class="card"><span class="data-s">ELEVATION</span><div class="data-l" style="margin-top:6px">${fmt(p.elev)}<span class="data-s"> m</span></div></div>
+  </div>
+  <div class="measure">
+    <h2 class="title-m" style="margin-bottom:14px">Why it matters</h2>
+    <p class="body-l">${p.story}</p>
+  </div>
+  <h2 class="title-m" style="margin:48px 0 16px">Interesting facts</h2>
+  <div class="grid g-3">${p.facts.map(f=>`<div class="card"><span class="eyebrow">FACT</span><p style="margin-top:10px" class="body-s">${f}</p></div>`).join("")}</div>
+  <div class="notice" style="margin-top:40px">Live weather and an interactive map are planned for a future update. Coordinates on file: <span class="data-s">${p.lat.toFixed(2)}, ${p.lon.toFixed(2)}</span></div>
+  <h2 class="title-m" style="margin:48px 0 16px">Nearby in the database</h2>
+  <div class="grid g-3">${nearby.map(n=>`
+    <a class="card hoverable" href="airport-detail.html?id=${n[1].icao}">
+      <span class="eyebrow">${n[1].flag} ${esc(n[1].country)}</span>
+      <div class="title-s" style="margin:8px 0 2px">${esc(n[1].city)} · ${n[1].iata}</div>
+      <div class="data-s" style="margin-top:6px">${fmt(n[0])} KM GREAT-CIRCLE</div></a>`).join("")}</div>
+</div></section>`;
+</script></body></html>

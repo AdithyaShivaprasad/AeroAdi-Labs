@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AeroAdi Labs — Discover Aviation. Interactively.</title>
+<meta name="description" content="An interactive aviation learning platform: lessons on the physics of flight, a beautiful aircraft database, comparisons, quizzes, and the story of aviation.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..125,400..800&family=Instrument+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/styles.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 26 26'><path d='M2 20 L14 20 L21 13' fill='none' stroke='%233E8BFF' stroke-width='2.4' stroke-linecap='round'/><path d='M21 13 L24 10 L23.2 14.2 Z' fill='%233E8BFF'/></svg>">
+</head>
+<body>
+<div id="shell-nav"></div>
+
+<main id="main">
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-glow"></div>
+  <div class="hero-inner">
+    <span class="eyebrow">An interactive aviation learning platform</span>
+    <h1 class="display-xl" style="margin-top:14px;max-width:720px">Understand everything that flies.</h1>
+    <p class="hero-sub">Lessons that make the physics of flight click. A database of remarkable machines. Comparisons, quizzes, and ninety years of stories — built for the curious.</p>
+    <div class="hero-actions">
+      <a class="btn btn-primary" href="learn.html">Start learning</a>
+      <a class="btn btn-secondary" href="aircraft.html" style="border-color:#31415F;color:#EDF1F7">Explore aircraft</a>
+      <button class="btn btn-secondary" onclick="openSearch()" style="border-color:#31415F;color:#9AA8C0">⌕ Search <kbd style="margin-left:6px">/</kbd></button>
+    </div>
+    <!-- signature route line -->
+    <div class="route" aria-hidden="true">
+      <svg viewBox="0 0 900 90">
+        <path class="route-line" d="M20 70 C 200 70, 260 30, 450 30 S 700 62, 880 34"/>
+        <circle class="wp done" cx="20" cy="70" r="7"/><text class="wp-label" x="20" y="52" text-anchor="middle">LEARN</text>
+        <circle class="wp" cx="450" cy="30" r="7"/><text class="wp-label" x="450" y="14" text-anchor="middle">TEST</text>
+        <circle class="wp" cx="880" cy="34" r="7"/><text class="wp-label" x="866" y="18" text-anchor="middle">EXPLORE</text>
+      </svg>
+    </div>
+    <div class="chip-row" style="margin-top:26px" id="heroStats"></div>
+  </div>
+</section>
+
+<!-- FEATURED JOURNEY -->
+<section class="section"><div class="wrap">
+  <div class="section-head"><h2 class="title-l">Your first flight plan</h2><a class="btn-ghost btn" href="learn.html">All lessons →</a></div>
+  <div class="card" id="journeyCard" style="padding:32px"></div>
+</div></section>
+
+<!-- AIRCRAFT EXPLORER -->
+<section class="section" style="padding-top:0"><div class="wrap">
+  <div class="section-head"><h2 class="title-l">The hangar</h2><a class="btn-ghost btn" href="aircraft.html">Full database →</a></div>
+  <div class="scroll-rail" id="explorerRail" aria-label="Featured aircraft"></div>
+</div></section>
+
+<!-- TODAY'S FACT -->
+<section class="section" style="padding-top:0"><div class="wrap">
+  <div class="fact-card">
+    <span class="eyebrow">Today's aviation fact</span>
+    <p class="title-m" id="factText" style="margin-top:12px;font-family:var(--f-display);max-width:820px"></p>
+    <div style="margin-top:18px;display:flex;gap:10px">
+      <button class="btn btn-secondary" onclick="saveFact()">Save to hangar</button>
+      <button class="btn btn-secondary" onclick="shareFact()">Copy to share</button>
+    </div>
+  </div>
+</div></section>
+
+<!-- CATEGORIES -->
+<section class="section" style="padding-top:0"><div class="wrap">
+  <h2 class="title-l" style="margin-bottom:24px">Explore by category</h2>
+  <div class="grid g-4" id="catGrid" style="grid-template-columns:repeat(5,1fr)"></div>
+</div></section>
+
+<!-- AIRPORTS -->
+<section class="section" style="padding-top:0"><div class="wrap">
+  <div class="section-head"><h2 class="title-l">Great airports</h2><a class="btn-ghost btn" href="airports.html">All airports →</a></div>
+  <div class="grid g-4" id="airportGrid"></div>
+</div></section>
+
+<!-- DASHBOARD / TEST YOURSELF -->
+<section class="section" style="padding-top:0"><div class="wrap" id="dashSection"></div></section>
+</main>
+
+<div id="shell-footer"></div>
+<script src="assets/data.js"></script>
+<script src="assets/apt-stats.js"></script>
+<script src="assets/app.js"></script>
+<script>
+renderShell("index.html");
+
+/* hero stats */
+document.getElementById("heroStats").innerHTML =
+  `<span class="tag">◉ ${typeof APT_STATS!=="undefined"? APT_STATS.counts.total.toLocaleString():"49,000+"} airports — every one on Earth</span>
+   <span class="tag">✈ ${AIRCRAFT.length} aircraft in depth</span>
+   <span class="tag">◈ ${LESSONS.length} interactive lessons</span>
+   <span class="tag">▣ ${QUIZZES.reduce((s,q)=>s+q.qs.length,0)} quiz questions</span>`;
+
+/* featured journey with live progress */
+(function(){
+  const p = PATHS[0];
+  const done = store.get("lessonsDone",[]);
+  const doneCount = p.lessons.filter(l=>done.includes(l)).length;
+  const next = p.lessons.find(l=>!done.includes(l)) || p.lessons[0];
+  const nextL = byslug(LESSONS,next);
+  const pct = Math.round(100*doneCount/p.lessons.length);
+  document.getElementById("journeyCard").innerHTML = `
+    <div style="display:flex;justify-content:space-between;gap:24px;flex-wrap:wrap;align-items:center">
+      <div style="flex:1;min-width:260px">
+        <span class="eyebrow">Learning path · ${p.lessons.length} waypoints</span>
+        <div class="title-m" style="margin:8px 0 6px">${p.title}</div>
+        <p class="muted" style="max-width:520px">${p.blurb}</p>
+        <div class="progress-bar" style="margin-top:16px;max-width:420px"><div class="pf" style="width:${pct}%"></div></div>
+        <div class="data-s" style="margin-top:8px">${doneCount} of ${p.lessons.length} waypoints reached · ${pct}%</div>
+      </div>
+      <a class="btn btn-primary" href="lesson.html?id=${next}">${doneCount? "Resume at "+nextL.wp : "Begin at waypoint 1"}</a>
+    </div>`;
+})();
+
+/* explorer rail */
+document.getElementById("explorerRail").innerHTML =
+  ["airbus-a380","concorde","lockheed-sr-71","boeing-787-9","antonov-an-225","supermarine-spitfire","cessna-172"]
+  .map(s=>aircraftCard(byslug(AIRCRAFT,s))).join("");
+
+/* daily fact */
+const dayIdx = Math.floor(Date.now()/86400000) % FACTS.length;
+document.getElementById("factText").textContent = FACTS[dayIdx];
+function saveFact(){ const f=store.get("savedFacts",[]); if(!f.includes(dayIdx)){f.push(dayIdx);store.set("savedFacts",f);} toast("Saved to your hangar"); }
+function shareFact(){ navigator.clipboard && navigator.clipboard.writeText(FACTS[dayIdx]+" — via AeroAdi Labs"); toast("Copied to clipboard"); }
+
+/* categories */
+document.getElementById("catGrid").innerHTML = CATEGORIES.map(c=>{
+  const n = AIRCRAFT.filter(a=>a.cat===c.id).length;
+  return `<a class="card hoverable" href="aircraft.html?cat=${c.id}" style="text-align:center;padding:28px 16px">
+    <div style="font-size:26px;color:var(--accent)">${c.icon}</div>
+    <div class="title-s" style="margin:10px 0 4px">${c.name}</div>
+    <div class="data-s">${n} AIRCRAFT</div></a>`;
+}).join("");
+
+/* airports */
+document.getElementById("airportGrid").innerHTML = AIRPORTS.slice(0,4).map(p=>`
+  <a class="card hoverable" href="airport-detail.html?id=${p.icao}">
+    <span class="eyebrow">${p.flag} ${esc(p.country)}</span>
+    <div class="title-s" style="margin:8px 0 2px">${esc(p.city)}</div>
+    <div class="body-s">${esc(p.name)}</div>
+    <div class="stat-row">
+      <span class="st"><span class="data-s">CODE</span><span class="data-m">${p.iata}</span></span>
+      <span class="st"><span class="data-s">PAX/YR</span><span class="data-m">${p.pax}</span></span>
+      <span class="st"><span class="data-s">RWYS</span><span class="data-m">${p.rwys}</span></span>
+    </div></a>`).join("");
+
+/* dashboard preview or test-yourself */
+(function(){
+  const r = rank(); const st = store.get("streak",{count:0});
+  const done = store.get("lessonsDone",[]).length;
+  const el = document.getElementById("dashSection");
+  if(r.xp>0 || done>0){
+    el.innerHTML = `<h2 class="title-l" style="margin-bottom:24px">Your flight log</h2>
+    <div class="grid g-4">
+      <div class="card"><span class="data-s">RANK</span><div class="data-l" style="margin-top:6px">${r.name}</div></div>
+      <div class="card"><span class="data-s">TOTAL XP</span><div class="data-l" style="margin-top:6px">${r.xp}</div></div>
+      <div class="card"><span class="data-s">LESSONS DONE</span><div class="data-l" style="margin-top:6px">${done}</div></div>
+      <div class="card"><span class="data-s">STREAK</span><div class="data-l" style="margin-top:6px">${st.count} day${st.count===1?"":"s"}</div></div>
+    </div>
+    <div style="margin-top:16px"><a class="btn btn-ghost" href="profile.html">Open full profile →</a></div>`;
+  } else {
+    el.innerHTML = `<h2 class="title-l" style="margin-bottom:24px">Test yourself</h2>
+    <div class="grid g-2">${QUIZZES.slice(0,2).map(q=>`
+      <a class="card hoverable" href="quiz.html?id=${q.slug}">
+        <span class="eyebrow">▣ Quiz · ${DIFF_NAMES[q.diff]}</span>
+        <div class="title-s" style="margin:8px 0 4px">${q.title}</div>
+        <div class="body-s">${q.qs.length} questions · instant feedback with explanations</div>
+      </a>`).join("")}</div>`;
+  }
+})();
+</script>
+</body>
+</html>

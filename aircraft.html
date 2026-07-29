@@ -1,0 +1,49 @@
+<!DOCTYPE html><html lang="en"><head>
+<title>Aircraft Database — AeroAdi Labs</title>
+<meta name="description" content="Browse remarkable aircraft with real specifications — filter by role, manufacturer, and era.">
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..125,400..800&family=Instrument+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/styles.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 26 26'><path d='M2 20 L14 20 L21 13' fill='none' stroke='%233E8BFF' stroke-width='2.4' stroke-linecap='round'/><path d='M21 13 L24 10 L23.2 14.2 Z' fill='%233E8BFF'/></svg>">
+</head><body>
+<div id="shell-nav"></div>
+<main id="main">
+<section class="page-hero"><div class="wrap">
+  <span class="eyebrow">Database</span>
+  <h1 class="display-l" style="margin-top:10px">Aircraft</h1>
+  <p class="muted" style="max-width:560px;margin-top:10px">Every machine here has a story and real numbers behind it. Filter, open a profile, or add up to three to the comparison tray.</p>
+</div></section>
+<section class="section"><div class="wrap">
+  <div class="filter-rail">
+    <select class="input" id="fCat" aria-label="Filter by category"><option value="">All categories</option></select>
+    <select class="input" id="fMaker" aria-label="Filter by manufacturer"><option value="">All manufacturers</option></select>
+    <select class="input" id="fSort" aria-label="Sort">
+      <option value="name">Sort: Name</option><option value="first">First flight</option>
+      <option value="cruise">Fastest cruise</option><option value="range">Longest range</option>
+    </select>
+  </div>
+  <div class="grid g-3" id="acGrid"></div>
+  <div class="empty" id="acEmpty" style="display:none;margin-top:12px">The hangar is empty for this filter.<br><button class="btn btn-ghost" onclick="clearFilters()">Clear filters</button></div>
+</div></section>
+</main>
+<div id="shell-footer"></div>
+<script src="assets/data.js"></script><script src="assets/app.js"></script>
+<script>
+renderShell("aircraft.html");
+const cats={}; AIRCRAFT.forEach(a=>cats[a.cat]=1);
+CATEGORIES.forEach(c=>{ if(cats[c.id]) document.getElementById("fCat").insertAdjacentHTML("beforeend",`<option value="${c.id}">${c.name}</option>`); });
+[...new Set(AIRCRAFT.map(a=>a.maker))].sort().forEach(m=>document.getElementById("fMaker").insertAdjacentHTML("beforeend",`<option>${m}</option>`));
+function apply(){
+  const c=document.getElementById("fCat").value, m=document.getElementById("fMaker").value, s=document.getElementById("fSort").value;
+  let list=AIRCRAFT.filter(a=>(!c||a.cat===c)&&(!m||a.maker===m));
+  list.sort((a,b)=> s==="name"? a.name.localeCompare(b.name) : s==="first"? a.first-b.first : (b[s]||0)-(a[s]||0));
+  document.getElementById("acGrid").innerHTML=list.map(aircraftCard).join("");
+  document.getElementById("acEmpty").style.display=list.length? "none":"block";
+  const u=new URL(location); c?u.searchParams.set("cat",c):u.searchParams.delete("cat"); history.replaceState(null,"",u);
+}
+function clearFilters(){ fCat.value=""; fMaker.value=""; apply(); }
+["fCat","fMaker","fSort"].forEach(id=>document.getElementById(id).addEventListener("change",apply));
+const pc=param("cat"); if(pc) document.getElementById("fCat").value=pc;
+apply();
+</script></body></html>
